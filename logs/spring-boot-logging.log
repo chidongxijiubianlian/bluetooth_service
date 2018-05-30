@@ -1,0 +1,25 @@
+2018-05-29 14:26:52.586  INFO 2792 --- [main] o.a.b.BluetoothServiceApplication        : Starting BluetoothServiceApplication on it-dongxifeng with PID 2792 (F:\MyWork\bluetooth_service\target\classes started by Administrator in F:\MyWork\bluetooth_service)
+2018-05-29 14:26:52.594  INFO 2792 --- [main] o.a.b.BluetoothServiceApplication        : No active profile set, falling back to default profiles: default
+2018-05-29 14:26:55.314  INFO 2792 --- [reactor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-05-29 14:26:55.317  INFO 2792 --- [main] o.a.b.BluetoothServiceApplication        : Started BluetoothServiceApplication in 3.575 seconds (JVM running for 5.002)
+2018-05-29 14:28:02.914  INFO 2792 --- [reactor-http-nio-3] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2018-05-29 14:28:03.324  INFO 2792 --- [reactor-http-nio-3] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2018-05-29 15:21:57.022  INFO 8512 --- [main] o.a.b.BluetoothServiceApplication        : Starting BluetoothServiceApplication on it-dongxifeng with PID 8512 (F:\MyWork\bluetooth_service\target\classes started by Administrator in F:\MyWork\bluetooth_service)
+2018-05-29 15:21:57.026  INFO 8512 --- [main] o.a.b.BluetoothServiceApplication        : No active profile set, falling back to default profiles: default
+2018-05-29 15:21:59.326  INFO 8512 --- [reactor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-05-29 15:21:59.332  INFO 8512 --- [main] o.a.b.BluetoothServiceApplication        : Started BluetoothServiceApplication in 2.967 seconds (JVM running for 3.798)
+2018-05-29 15:25:18.891  WARN 8512 --- [reactor-http-nio-3] .a.w.r.e.DefaultErrorWebExceptionHandler : Failed to handle request [POST http://localhost:8080/api/test/TestPost]: Response status 404
+2018-05-29 15:26:14.531  INFO 2120 --- [main] o.a.b.BluetoothServiceApplication        : Starting BluetoothServiceApplication on it-dongxifeng with PID 2120 (F:\MyWork\bluetooth_service\target\classes started by Administrator in F:\MyWork\bluetooth_service)
+2018-05-29 15:26:14.531  INFO 2120 --- [main] o.a.b.BluetoothServiceApplication        : No active profile set, falling back to default profiles: default
+2018-05-29 15:26:16.843  INFO 2120 --- [reactor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-05-29 15:26:16.846  INFO 2120 --- [main] o.a.b.BluetoothServiceApplication        : Started BluetoothServiceApplication in 2.788 seconds (JVM running for 3.162)
+2018-05-29 15:26:21.138  WARN 2120 --- [reactor-http-nio-3] .a.w.r.e.DefaultErrorWebExceptionHandler : Failed to handle request [POST http://localhost:8080/api/test/TestPost]: Response status 404
+2018-05-29 15:26:27.233  WARN 2120 --- [reactor-http-nio-3] .a.w.r.e.DefaultErrorWebExceptionHandler : Failed to handle request [POST http://localhost:8080/api/TestPost]: Response status 404
+2018-05-29 15:26:52.694  INFO 9836 --- [main] o.a.b.BluetoothServiceApplication        : Starting BluetoothServiceApplication on it-dongxifeng with PID 9836 (F:\MyWork\bluetooth_service\target\classes started by Administrator in F:\MyWork\bluetooth_service)
+2018-05-29 15:26:52.697  INFO 9836 --- [main] o.a.b.BluetoothServiceApplication        : No active profile set, falling back to default profiles: default
+2018-05-29 15:26:54.904  INFO 9836 --- [reactor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-05-29 15:26:54.908  INFO 9836 --- [main] o.a.b.BluetoothServiceApplication        : Started BluetoothServiceApplication in 2.577 seconds (JVM running for 2.963)
+2018-05-29 15:27:18.512  INFO 7856 --- [main] o.a.b.BluetoothServiceApplication        : Starting BluetoothServiceApplication on it-dongxifeng with PID 7856 (F:\MyWork\bluetooth_service\target\classes started by Administrator in F:\MyWork\bluetooth_service)
+2018-05-29 15:27:18.512  INFO 7856 --- [main] o.a.b.BluetoothServiceApplication        : No active profile set, falling back to default profiles: default
+2018-05-29 15:27:20.684  INFO 7856 --- [reactor-http-nio-1] r.ipc.netty.tcp.BlockingNettyContext     : Started HttpServer on /0:0:0:0:0:0:0:0:8080
+2018-05-29 15:27:20.689  INFO 7856 --- [main] o.a.b.BluetoothServiceApplication        : Started BluetoothServiceApplication in 2.71 seconds (JVM running for 3.099)

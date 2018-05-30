@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.andon.bluetooth_service.mapper.UserDeviceMapper">
+    <!-- code start -->
+    <!-- code end -->
+    <insert id="insert" parameterType="TestUserDevice" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO test_user_device
+        (uid, did, createdate) VALUES
+        (#{uid},#{did},#{createdate});
+    </insert>
+    <select id="getByUserID" parameterType="int" resultType="TestUserDevice">
+        select * from test_user_device where uid=#{uid};
+    </select>
+    <select id="getByDeviceID" parameterType="int" resultType="TestUserDevice">
+        select * from test_user_device where did=#{did};
+    </select>
+    <select id="getByID"  parameterType="int" resultType="TestUserDevice">
+        select * from test_user_device where uid=#{0} and did=#{1};
+    </select>
+    <delete id="del" parameterType="int">
+        delete from test_user_device where id=#{id};
+    </delete>
+</mapper>
