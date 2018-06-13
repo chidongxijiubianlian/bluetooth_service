@@ -2,6 +2,7 @@ package org.andon.bluetooth_service.base;
 
 //返回值
 //2
+//4
 public class ResponseEntity<T> {
     public double code;
     public String message;
