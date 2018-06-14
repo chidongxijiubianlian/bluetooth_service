@@ -3,6 +3,7 @@ package org.andon.bluetooth_service.dto;
 public class DTOGet_Devices_MyDevice {
     private String deviceID;
     private String deviceName;
+    private String fingerprint;
 
     public String getDeviceID() {
         return deviceID;
@@ -18,5 +19,13 @@ public class DTOGet_Devices_MyDevice {
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
+    }
+
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
     }
 }

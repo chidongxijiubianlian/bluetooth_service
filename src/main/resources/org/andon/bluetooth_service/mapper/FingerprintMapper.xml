@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.andon.bluetooth_service.mapper.FingerprintMapper">
+    <insert id="insert" parameterType="TestFingerprint" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO test_fingerprint
+        (guid, phone, deviceID, fingerprint, createdate) VALUES
+        (#{guid},#{phone},#{deviceID},#{fingerprint},#{createdate});
+    </insert>
+    <delete id="del" parameterType="String">
+        delete from  test_fingerprint where guid=#{guid};
+    </delete>
+    <select id="any" parameterType="string" resultType="int">
+        select count(*) from test_fingerprint where guid=#{guid};
+    </select>
+    <select id="get" resultType="TestFingerprint">
+        select * from test_fingerprint where deviceID=#{0} and phone=#{1} order by createdate DESC;
+    </select>
+    <update id="update" parameterType="TestFingerprint">
+        update test_fingerprint set
+        createdate =#{createdate}
+        where phone =#{phone} and deviceID=#{deviceID} and fingerprint= #{fingerprint}
+    </update>
+
+    <select id="anyFingerprint" parameterType="TestFingerprint" resultType="int">
+        select count(*) from test_fingerprint where phone =#{phone} and deviceID=#{deviceID} and fingerprint = #{fingerprint}
+    </select>
+
+</mapper>

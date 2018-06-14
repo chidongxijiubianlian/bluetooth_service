@@ -1,25 +1,30 @@
 package org.andon.bluetooth_service.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import org.andon.bluetooth_service.base.BaseController;
 import org.andon.bluetooth_service.base.ResponseEntity;
 import org.andon.bluetooth_service.common.BluetoothUtils;
 import org.andon.bluetooth_service.dto.*;
 import org.andon.bluetooth_service.entity.TestDevice;
+import org.andon.bluetooth_service.entity.TestFingerprint;
 import org.andon.bluetooth_service.entity.TestUser;
 import org.andon.bluetooth_service.entity.TestUserDevice;
 import org.andon.bluetooth_service.mapper.DeviceMapper;
-import org.andon.bluetooth_service.mapper.UserMapper;
+import org.andon.bluetooth_service.mapper.FingerprintMapper;
 import org.andon.bluetooth_service.mapper.UserDeviceMapper;
+import org.andon.bluetooth_service.mapper.UserMapper;
 import org.andon.bluetooth_service.ret.RETPhoneInfo;
 import org.andon.bluetooth_service.ret.RETSharedDeviceToUsers;
-import org.andon.bluetooth_service.ret.RETSharedUser;
 import org.andon.bluetooth_service.service.IDeviceUsers;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +41,9 @@ public class BluetoothController extends BaseController {
     private UserMapper _userMapper;
     @Autowired
     private IDeviceUsers _ideviceUsers;
+    @Autowired
+    private FingerprintMapper _fingerprintMapper;
+
     @PostMapping("api/bind_bluetooth")
     public ResponseEntity<?> bind_bluetooth(@RequestBody DTO_BindBluetooth dto_bindBluetooth)
     {
@@ -154,6 +162,7 @@ public class BluetoothController extends BaseController {
     @PostMapping("api/get_devices")
     public ResponseEntity<?> get_devices(@RequestBody DTOMy_Devices dtoMy_devices)
     {
+        DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         if(StringUtils.isEmpty(dtoMy_devices.getPhone()))
         {
             return failResult(500.4,"请求缺少必要参数");
@@ -178,9 +187,23 @@ public class BluetoothController extends BaseController {
             List<DTOGet_Devices_MyDevice> dtoGet_devices_myDevices = new ArrayList<>();
             for(TestDevice device:testDevicesList)
             {
+                DTO_Fingerprint fDto = null;
+                List<DTO_Fingerprint> tempList = new ArrayList<DTO_Fingerprint>();
+                List<TestFingerprint> fList = _fingerprintMapper.get(device.getDeviceID(), dtoMy_devices.getPhone());
+                for(TestFingerprint item : fList)
+                {
+                    fDto = new DTO_Fingerprint();
+                    fDto.setGuid(item.getGuid());
+                    fDto.setContent(item.getFingerprint());
+                    fDto.setCreatedate(sdf.format(item.getCreatedate()));
+                    tempList.add(fDto);
+                }
+
                 DTOGet_Devices_MyDevice myDevice = new DTOGet_Devices_MyDevice();
                 myDevice.setDeviceID(device.getDeviceID());
                 myDevice.setDeviceName(device.getName());
+                myDevice.setFingerprint(JSONArray.toJSONString(tempList));
+
                 dtoGet_devices_myDevices.add(myDevice);
             }
             dtoGet_devices.setDevices(dtoGet_devices_myDevices);
@@ -282,5 +305,73 @@ public class BluetoothController extends BaseController {
         testUserDevice.setDid(did);
         testUserDevice.setCreatedate(new Date());
         return testUserDevice;
+    }
+
+    @PostMapping("api/add_fingerprint")
+    public ResponseEntity<?> add_fingerprint(@RequestBody DTO_AddFingerprint dto) {
+        if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID()) || StringUtils.isEmpty(dto.getFingerprint())) {
+            return failResult(500.4, "请求缺少必要参数");
+        }
+        //判断phone的长度是否合理
+        if (dto.getPhone().length() != 11) {
+            return failResult(500.5, "手机号长度不合法");
+        }
+        //判断手机号是否存在
+        TestUser _testUser = _userMapper.getByPhone(dto.getPhone());
+        if (_testUser == null) {
+            return failResult(500.1, "手机号不存在");
+        }
+        TestDevice _testDevice = _deviceMapper.getByDeviceID(dto.getDeviceID());
+        if (_testDevice == null) {
+            return failResult(500.2, "设备不存在");
+        }
+
+
+        TestFingerprint entity = new TestFingerprint();
+        entity.setGuid(UUID.randomUUID().toString().toLowerCase().trim().replaceAll("-", ""));
+        entity.setCreatedate(new Date());
+        entity.setPhone(dto.getPhone());
+        entity.setDeviceID(dto.getDeviceID());
+        entity.setFingerprint(dto.getFingerprint());
+        int res = _fingerprintMapper.anyFingerprint(entity);
+        if (res > 0)
+        {
+            _fingerprintMapper.update(entity);
+        }
+        else
+        {
+            _fingerprintMapper.insert(entity);
+        }
+        return successResult(null);
+    }
+
+
+    @PostMapping("api/del_fingerprint")
+        public ResponseEntity<?> del_fingerprint(@RequestBody DTO_Fingerprint dto) {
+        int res = _fingerprintMapper.any(dto.getGuid());
+        if (res > 0) {
+            _fingerprintMapper.del(dto.getGuid());
+        }
+        return successResult(null);
+    }
+
+    public static void main(String[] args) {
+       List<DTO_Fingerprint> list = new ArrayList<DTO_Fingerprint>();
+        DTO_Fingerprint fDto = new DTO_Fingerprint();
+        fDto.setGuid("1");
+        fDto.setContent("2");
+        fDto.setCreatedate("3");
+        list.add(fDto);
+
+        TestFingerprint test = new TestFingerprint();
+
+        BeanUtils.copyProperties(fDto, test);
+        String jsonString = JSONArray.toJSONString(list);
+        String a =  "[{\"studentName\":\"lily\",\"studentAge\":12}]";
+
+        System.out.println(jsonString);
+        //System.out.println(JSONObject.parseObject(a));
+
+
     }
 }
