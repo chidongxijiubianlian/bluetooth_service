@@ -8,8 +8,8 @@ import java.util.List;
 @Mapper
 public interface FingerprintMapper {
     int insert(TestFingerprint TestFingerprint);
-    void del(String guid);
-    int any(String guid);
+    void del(String guid,String phone);
+    int any(String guid,String phone);
     List<TestFingerprint> get(String deviceID, String iphone);
     int update(TestFingerprint TestFingerprint);
     int anyFingerprint(TestFingerprint TestFingerprint);

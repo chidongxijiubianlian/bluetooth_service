@@ -9,6 +9,7 @@ public class TestFingerprint {
     private String deviceID;
     private String fingerprint;
     private Date createdate;
+    private int fingerprintID;
 
     public int getId() {
         return id;
@@ -56,5 +57,13 @@ public class TestFingerprint {
 
     public void setCreatedate(Date createdate) {
         this.createdate = createdate;
+    }
+
+    public int getFingerprintID() {
+        return fingerprintID;
+    }
+
+    public void setFingerprintID(int fingerprintID) {
+        this.fingerprintID = fingerprintID;
     }
 }

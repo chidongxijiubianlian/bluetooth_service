@@ -196,13 +196,14 @@ public class BluetoothController extends BaseController {
                     fDto.setGuid(item.getGuid());
                     fDto.setContent(item.getFingerprint());
                     fDto.setCreatedate(sdf.format(item.getCreatedate()));
+                    fDto.setFingerprintID(item.getFingerprintID());
                     tempList.add(fDto);
                 }
 
                 DTOGet_Devices_MyDevice myDevice = new DTOGet_Devices_MyDevice();
                 myDevice.setDeviceID(device.getDeviceID());
                 myDevice.setDeviceName(device.getName());
-                myDevice.setFingerprint(JSONArray.toJSONString(tempList));
+                myDevice.setFingerprint(tempList);
 
                 dtoGet_devices_myDevices.add(myDevice);
             }
@@ -326,13 +327,13 @@ public class BluetoothController extends BaseController {
             return failResult(500.2, "设备不存在");
         }
 
-
         TestFingerprint entity = new TestFingerprint();
         entity.setGuid(UUID.randomUUID().toString().toLowerCase().trim().replaceAll("-", ""));
         entity.setCreatedate(new Date());
         entity.setPhone(dto.getPhone());
         entity.setDeviceID(dto.getDeviceID());
         entity.setFingerprint(dto.getFingerprint());
+        entity.setFingerprintID(dto.getFingerprintID());
         int res = _fingerprintMapper.anyFingerprint(entity);
         if (res > 0)
         {
@@ -347,10 +348,14 @@ public class BluetoothController extends BaseController {
 
 
     @PostMapping("api/del_fingerprint")
-        public ResponseEntity<?> del_fingerprint(@RequestBody DTO_Fingerprint dto) {
-        int res = _fingerprintMapper.any(dto.getGuid());
+    public ResponseEntity<?> del_fingerprint(@RequestBody DTO_DelFingerprint dto) {
+        int res = _fingerprintMapper.any(dto.getGuid(),dto.getPhone());
         if (res > 0) {
-            _fingerprintMapper.del(dto.getGuid());
+            _fingerprintMapper.del(dto.getGuid(),dto.getPhone());
+        }
+        else
+        {
+            return failResult(500.7, "这条指纹不属于该用户");
         }
         return successResult(null);
     }
