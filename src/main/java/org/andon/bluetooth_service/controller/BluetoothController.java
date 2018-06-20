@@ -1,9 +1,11 @@
 package org.andon.bluetooth_service.controller;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.andon.bluetooth_service.base.BaseController;
 import org.andon.bluetooth_service.base.ResponseEntity;
 import org.andon.bluetooth_service.common.BluetoothUtils;
+import org.andon.bluetooth_service.common.DateUtils;
 import org.andon.bluetooth_service.dto.*;
 import org.andon.bluetooth_service.entity.TestDevice;
 import org.andon.bluetooth_service.entity.TestFingerprint;
@@ -16,6 +18,8 @@ import org.andon.bluetooth_service.mapper.UserMapper;
 import org.andon.bluetooth_service.ret.RETPhoneInfo;
 import org.andon.bluetooth_service.ret.RETSharedDeviceToUsers;
 import org.andon.bluetooth_service.service.IDeviceUsers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -44,154 +48,231 @@ public class BluetoothController extends BaseController {
     @Autowired
     private FingerprintMapper _fingerprintMapper;
 
+    /**
+     * 引入日志，注意都是"org.slf4j"包下
+     */
+    private final static Logger logger = LoggerFactory.getLogger(BluetoothController.class);
+
     @PostMapping("api/bind_bluetooth")
-    public ResponseEntity<?> bind_bluetooth(@RequestBody DTO_BindBluetooth dto_bindBluetooth)
-    {
-        if(StringUtils.isEmpty(dto_bindBluetooth.getPhone()) ||StringUtils.isEmpty(dto_bindBluetooth.getDeviceID())||StringUtils.isEmpty(dto_bindBluetooth.getDeviceName()))
-        {
-            return failResult(500.4,"请求缺少必要参数");
+    public ResponseEntity<?> bind_bluetooth(@RequestBody DTO_BindBluetooth dto_bindBluetooth) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("bind_bluetooth");
+        logDto.setRequestUrl("api/bind_bluetooth");
+        logDto.setPostData(JSONArray.toJSONString(dto_bindBluetooth));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dto_bindBluetooth.getPhone()) || StringUtils.isEmpty(dto_bindBluetooth.getDeviceID()) || StringUtils.isEmpty(dto_bindBluetooth.getDeviceName())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
         }
         //判断phone的长度是否合理
-        if( dto_bindBluetooth.getPhone().length() !=11)
-        {
-            return failResult(500.5,"手机号长度不合法");
+        if (dto_bindBluetooth.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
         }
         //判断手机号是否存在
-        TestUser  _testUser = _userMapper.getByPhone(dto_bindBluetooth.getPhone());
-        if(_testUser ==null)
-        {
+        TestUser _testUser = _userMapper.getByPhone(dto_bindBluetooth.getPhone());
+        if (_testUser == null) {
             _testUser = GetUser(dto_bindBluetooth.getPhone());
             _userMapper.insert(_testUser);
         }
         TestDevice _testDevice = _deviceMapper.getByDeviceID(dto_bindBluetooth.getDeviceID());
-        if(_testDevice ==null)
-        {
-            _testDevice =GetDevice(dto_bindBluetooth.getDeviceID(),dto_bindBluetooth.getDeviceName());
+        if (_testDevice == null) {
+            _testDevice = GetDevice(dto_bindBluetooth.getDeviceID(), dto_bindBluetooth.getDeviceName());
             _deviceMapper.insert(_testDevice);
         }
-        if(_testDevice.getOwnerid() !=0 && _testDevice.getOwnerid() !=_testUser.getId())
-        {
-            return failResult(500.6,"设备已绑定");
+        if (_testDevice.getOwnerid() != 0 && _testDevice.getOwnerid() != _testUser.getId()) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.6, "设备已绑定");
         }
-        if(!_testDevice.getName().equals(dto_bindBluetooth.getDeviceName()))
-        {
+        if (!_testDevice.getName().equals(dto_bindBluetooth.getDeviceName())) {
             _testDevice.setName(dto_bindBluetooth.getDeviceName());
         }
         _testDevice.setOwnerid(_testUser.getId());
         _deviceMapper.update(_testDevice);
         //先查询 手机号是否存在
+        /*--------------log------------------*/
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(null);
     }
+
     @PostMapping("api/share_bluetooth")
-    public ResponseEntity<?> share_bluetooth(@RequestBody DTOShareBluetooth dtoShareBluetooth)
-    {
-        if(StringUtils.isEmpty(dtoShareBluetooth.getPhone()) ||StringUtils.isEmpty(dtoShareBluetooth.getDeviceID())||StringUtils.isEmpty(dtoShareBluetooth.getSharedPhone()))
-        {
-            return failResult(500.4,"请求缺少必要参数");
+    public ResponseEntity<?> share_bluetooth(@RequestBody DTOShareBluetooth dtoShareBluetooth) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("share_bluetooth");
+        logDto.setRequestUrl("api/share_bluetooth");
+        logDto.setPostData(JSONArray.toJSONString(dtoShareBluetooth));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dtoShareBluetooth.getPhone()) || StringUtils.isEmpty(dtoShareBluetooth.getDeviceID()) || StringUtils.isEmpty(dtoShareBluetooth.getSharedPhone())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
         }
-        if( dtoShareBluetooth.getSharedPhone().length() !=11)
-        {
-            return failResult(500.5,"手机号长度不合法");
+        if (dtoShareBluetooth.getSharedPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
         }
-        TestUser  _testUser = _userMapper.getByPhone(dtoShareBluetooth.getPhone());
-        if(_testUser ==null)
-        {
-            return failResult(500.1,"手机号不存在");
+        TestUser _testUser = _userMapper.getByPhone(dtoShareBluetooth.getPhone());
+        if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.1, "手机号不存在");
         }
         TestDevice _testDevice = _deviceMapper.getByDeviceID(dtoShareBluetooth.getDeviceID());
-        if(_testDevice ==null)
-        {
-            return failResult(500.2,"设备不存在");
+        if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.2, "设备不存在");
         }
-        if(_testDevice.getOwnerid() !=_testUser.getId())
-        {
-            return failResult(500.3,"非该设备绑定者，不能执行 分享/取消 分享操作");
+        if (_testDevice.getOwnerid() != _testUser.getId()) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.3, "非该设备绑定者，不能执行 分享/取消 分享操作");
         }
-        TestUser  _sharedUser = _userMapper.getByPhone(dtoShareBluetooth.getSharedPhone());
-        if(_sharedUser ==null)
-        {
+        TestUser _sharedUser = _userMapper.getByPhone(dtoShareBluetooth.getSharedPhone());
+        if (_sharedUser == null) {
             _sharedUser = GetUser(dtoShareBluetooth.getSharedPhone());
             _userMapper.insert(_sharedUser);
         }
-        TestUserDevice testUserDevice =_userdeviceMapper.getByID(_sharedUser.getId(),_testDevice.getId());
-        if(testUserDevice ==null)
-        {
-            testUserDevice =GetUserDevice(_sharedUser.getId(),_testDevice.getId());
+        TestUserDevice testUserDevice = _userdeviceMapper.getByID(_sharedUser.getId(), _testDevice.getId());
+        if (testUserDevice == null) {
+            testUserDevice = GetUserDevice(_sharedUser.getId(), _testDevice.getId());
             _userdeviceMapper.insert(testUserDevice);
         }
         RETSharedDeviceToUsers retSharedDeviceToUsers = new RETSharedDeviceToUsers();
-        retSharedDeviceToUsers =_ideviceUsers.GetDeviceUsers(dtoShareBluetooth.getDeviceID());
+        retSharedDeviceToUsers = _ideviceUsers.GetDeviceUsers(dtoShareBluetooth.getDeviceID());
+        /*--------------log------------------*/
+        logDto.setResponseData(JSONArray.toJSONString(retSharedDeviceToUsers));
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(retSharedDeviceToUsers);
     }
+
     @PostMapping("api/unshare_bluetooth")
-    public ResponseEntity<?> unshare_bluetooth(@RequestBody DTOUnShareBluetooth dtoUnShareBluetooth)
-    {
-        if(StringUtils.isEmpty(dtoUnShareBluetooth.getPhone()) ||StringUtils.isEmpty(dtoUnShareBluetooth.getDeviceID())||StringUtils.isEmpty(dtoUnShareBluetooth.getUnSharedPhone()))
-        {
-            return failResult(500.4,"请求缺少必要参数");
+    public ResponseEntity<?> unshare_bluetooth(@RequestBody DTOUnShareBluetooth dtoUnShareBluetooth) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("unshare_bluetooth");
+        logDto.setRequestUrl("api/unshare_bluetooth");
+        logDto.setPostData(JSONArray.toJSONString(dtoUnShareBluetooth));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dtoUnShareBluetooth.getPhone()) || StringUtils.isEmpty(dtoUnShareBluetooth.getDeviceID()) || StringUtils.isEmpty(dtoUnShareBluetooth.getUnSharedPhone())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
         }
-        TestUser  _testUser = _userMapper.getByPhone(dtoUnShareBluetooth.getPhone());
-        if(_testUser ==null)
-        {
-            return failResult(500.1,"手机号不存在");
+        TestUser _testUser = _userMapper.getByPhone(dtoUnShareBluetooth.getPhone());
+        if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.1, "手机号不存在");
         }
         TestDevice _testDevice = _deviceMapper.getByDeviceID(dtoUnShareBluetooth.getDeviceID());
-        if(_testDevice ==null)
-        {
-            return failResult(500.2,"设备不存在");
+        if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.2, "设备不存在");
         }
-        if(_testDevice.getOwnerid() !=_testUser.getId())
-        {
-            return failResult(500.3,"非该设备绑定者，不能执行 分享/取消 分享操作");
+        if (_testDevice.getOwnerid() != _testUser.getId()) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.3, "非该设备绑定者，不能执行 分享/取消 分享操作");
         }
-        TestUser  _sharedUser = _userMapper.getByPhone(dtoUnShareBluetooth.getUnSharedPhone());
-        if(_sharedUser ==null)
-        {
+        TestUser _sharedUser = _userMapper.getByPhone(dtoUnShareBluetooth.getUnSharedPhone());
+        if (_sharedUser == null) {
             _sharedUser = GetUser(dtoUnShareBluetooth.getUnSharedPhone());
             _userMapper.insert(_sharedUser);
         }
-        TestUserDevice testUserDevice =_userdeviceMapper.getByID(_sharedUser.getId(),_testDevice.getId());
-        if(testUserDevice !=null)
-        {
+        TestUserDevice testUserDevice = _userdeviceMapper.getByID(_sharedUser.getId(), _testDevice.getId());
+        if (testUserDevice != null) {
             _userdeviceMapper.del(testUserDevice.getId());
         }
         RETSharedDeviceToUsers sharedUser = new RETSharedDeviceToUsers();
-        sharedUser =_ideviceUsers.GetDeviceUsers(dtoUnShareBluetooth.getDeviceID());
+        sharedUser = _ideviceUsers.GetDeviceUsers(dtoUnShareBluetooth.getDeviceID());
+        /*--------------log------------------*/
+        logDto.setResponseData(JSONArray.toJSONString(sharedUser));
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(sharedUser);
     }
+
     @PostMapping("api/get_devices")
-    public ResponseEntity<?> get_devices(@RequestBody DTOMy_Devices dtoMy_devices)
-    {
+    public ResponseEntity<?> get_devices(@RequestBody DTOMy_Devices dtoMy_devices) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("get_devices");
+        logDto.setRequestUrl("api/get_devices");
+        logDto.setPostData(JSONArray.toJSONString(dtoMy_devices));
+        /*--------------log------------------*/
         DateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        if(StringUtils.isEmpty(dtoMy_devices.getPhone()))
-        {
-            return failResult(500.4,"请求缺少必要参数");
+        if (StringUtils.isEmpty(dtoMy_devices.getPhone())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
         }
-        if(dtoMy_devices.getPhone().length() !=11)
-        {
-            return failResult(500.5,"手机号长度不合法");
+        if (dtoMy_devices.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
         }
-        TestUser  _testUser = _userMapper.getByPhone(dtoMy_devices.getPhone());
-        if(_testUser ==null)
-        {
+        TestUser _testUser = _userMapper.getByPhone(dtoMy_devices.getPhone());
+        if (_testUser == null) {
             _testUser = GetUser(dtoMy_devices.getPhone());
             _userMapper.insert(_testUser);
         }
-        List<TestDevice> testDevicesList =_deviceMapper.getByOwnerID(_testUser.getId());
-        List<TestUserDevice> testUserDeviceList =_userdeviceMapper.getByUserID(_testUser.getId());
-        DTOGet_Devices dtoGet_devices =new DTOGet_Devices();
+        List<TestDevice> testDevicesList = _deviceMapper.getByOwnerID(_testUser.getId());
+        List<TestUserDevice> testUserDeviceList = _userdeviceMapper.getByUserID(_testUser.getId());
+        DTOGet_Devices dtoGet_devices = new DTOGet_Devices();
         dtoGet_devices.setDevices(new ArrayList<DTOGet_Devices_MyDevice>());
         dtoGet_devices.setSharedDevices(new ArrayList<DTOGet_Devices_SharedDevice>());
-        if(testDevicesList !=null && testDevicesList.size()>0)
-        {
+        if (testDevicesList != null && testDevicesList.size() > 0) {
             List<DTOGet_Devices_MyDevice> dtoGet_devices_myDevices = new ArrayList<>();
-            for(TestDevice device:testDevicesList)
-            {
+            for (TestDevice device : testDevicesList) {
                 DTO_Fingerprint fDto = null;
                 List<DTO_Fingerprint> tempList = new ArrayList<DTO_Fingerprint>();
                 List<TestFingerprint> fList = _fingerprintMapper.get(device.getDeviceID(), dtoMy_devices.getPhone());
-                for(TestFingerprint item : fList)
-                {
+                for (TestFingerprint item : fList) {
                     fDto = new DTO_Fingerprint();
                     fDto.setGuid(item.getGuid());
                     fDto.setContent(item.getFingerprint());
@@ -209,25 +290,20 @@ public class BluetoothController extends BaseController {
             }
             dtoGet_devices.setDevices(dtoGet_devices_myDevices);
         }
-        if(testUserDeviceList !=null && testUserDeviceList.size()>0)
-        {
+        if (testUserDeviceList != null && testUserDeviceList.size() > 0) {
             List<DTOGet_Devices_SharedDevice> dtoGet_devices_myDevices = new ArrayList<>();
-            List<Integer> didList =testUserDeviceList.stream().map(TestUserDevice::getDid).collect(Collectors.toList());
-            List<TestDevice> testDeviceList =_deviceMapper.getByDids(didList);
-            if(testDeviceList !=null && testDeviceList.size()>0)
-            {
+            List<Integer> didList = testUserDeviceList.stream().map(TestUserDevice::getDid).collect(Collectors.toList());
+            List<TestDevice> testDeviceList = _deviceMapper.getByDids(didList);
+            if (testDeviceList != null && testDeviceList.size() > 0) {
                 List<DTOGet_Devices_SharedDevice> dtoGet_devices_sharedDevices = new ArrayList<>();
-                List<Integer> userIDList =testDeviceList.stream().map(TestDevice::getOwnerid).collect(Collectors.toList());
+                List<Integer> userIDList = testDeviceList.stream().map(TestDevice::getOwnerid).collect(Collectors.toList());
                 List<TestUser> selectedUsers = _userMapper.getByIDList(userIDList);
-                for (TestDevice testDevice:testDeviceList)
-                {
+                for (TestDevice testDevice : testDeviceList) {
                     DTOGet_Devices_SharedDevice dtoGet_devices_sharedDevice = new DTOGet_Devices_SharedDevice();
                     dtoGet_devices_sharedDevice.setDeviceID(testDevice.getDeviceID());
                     dtoGet_devices_sharedDevice.setDeviceName(testDevice.getName());
-                    for (TestUser testUser:selectedUsers)
-                    {
-                        if(testUser.getId() ==testDevice.getOwnerid())
-                        {
+                    for (TestUser testUser : selectedUsers) {
+                        if (testUser.getId() == testDevice.getOwnerid()) {
                             dtoGet_devices_sharedDevice.setOwnerPhone(testUser.getPhone());
                         }
                     }
@@ -236,62 +312,91 @@ public class BluetoothController extends BaseController {
                 dtoGet_devices.setSharedDevices(dtoGet_devices_sharedDevices);
             }
         }
+        /*--------------log------------------*/
+        logDto.setResponseData(JSONArray.toJSONString(dtoGet_devices));
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(dtoGet_devices);
     }
+
     @PostMapping("api/get_sharedList")
-    public ResponseEntity<?> get_sharedList(@RequestBody DTOGet_SharedList dtoGetShared)
-    {
-        if(StringUtils.isEmpty(dtoGetShared.getPhone()) || StringUtils.isEmpty(dtoGetShared.getDeviceID()))
-        {
-            return failResult(500.4,"请求缺少必要参数");
+    public ResponseEntity<?> get_sharedList(@RequestBody DTOGet_SharedList dtoGetShared) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("get_sharedList");
+        logDto.setRequestUrl("api/get_sharedList");
+        logDto.setPostData(JSONArray.toJSONString(dtoGetShared));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dtoGetShared.getPhone()) || StringUtils.isEmpty(dtoGetShared.getDeviceID())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
         }
-        if(dtoGetShared.getPhone().length() !=11)
-        {
-            return failResult(500.5,"手机号长度不合法");
+        if (dtoGetShared.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
         }
-        TestUser  _testUser = _userMapper.getByPhone(dtoGetShared.getPhone());
-        if(_testUser ==null)
-        {
-            return failResult(500.1,"手机号不存在");
+        TestUser _testUser = _userMapper.getByPhone(dtoGetShared.getPhone());
+        if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.1, "手机号不存在");
         }
-        TestDevice _testDevice =_deviceMapper.getByDeviceID(dtoGetShared.getDeviceID());
-        if(_testDevice ==null)
-        {
-            return failResult(500.2,"设备不存在");
+        TestDevice _testDevice = _deviceMapper.getByDeviceID(dtoGetShared.getDeviceID());
+        if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.2, "设备不存在");
         }
-        if(_testDevice.getOwnerid() !=_testUser.getId())
-        {
-            return failResult(500.3,"非该设备绑定者，不能执行 分享/取消 分享操作");
+        if (_testDevice.getOwnerid() != _testUser.getId()) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.3, "非该设备绑定者，不能执行 分享/取消 分享操作");
         }
-        List<TestUserDevice> _testUserDeviceList =_userdeviceMapper.getByDeviceID(_testDevice.getId());
-        List<TestUser> _testUserList =new ArrayList<>();
-        List<RETPhoneInfo> _retPhoneInfos =new ArrayList<>();
-        if(_testUserDeviceList !=null && _testUserDeviceList.size()>0)
-        {
-            List<Integer> UserIDList =_testUserDeviceList.stream().map(TestUserDevice::getUid).collect(Collectors.toList());
-            _testUserList =_userMapper.getByIDList(UserIDList);
-            if(_testUserList !=null && _testUserList.size()>0)
-            {
-                for (TestUser testUser:_testUserList)
-                {
+        List<TestUserDevice> _testUserDeviceList = _userdeviceMapper.getByDeviceID(_testDevice.getId());
+        List<TestUser> _testUserList = new ArrayList<>();
+        List<RETPhoneInfo> _retPhoneInfos = new ArrayList<>();
+        if (_testUserDeviceList != null && _testUserDeviceList.size() > 0) {
+            List<Integer> UserIDList = _testUserDeviceList.stream().map(TestUserDevice::getUid).collect(Collectors.toList());
+            _testUserList = _userMapper.getByIDList(UserIDList);
+            if (_testUserList != null && _testUserList.size() > 0) {
+                for (TestUser testUser : _testUserList) {
                     RETPhoneInfo retPhoneInfo = new RETPhoneInfo();
                     retPhoneInfo.setPhone(testUser.getPhone());
                     _retPhoneInfos.add(retPhoneInfo);
                 }
             }
         }
+        /*--------------log------------------*/
+        logDto.setResponseData(JSONArray.toJSONString(_retPhoneInfos));
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(_retPhoneInfos);
     }
-    public TestUser GetUser(String phone)
-    {
+
+    public TestUser GetUser(String phone) {
         TestUser testUser = new TestUser();
         testUser.setPhone(phone);
         testUser.setHguid(UUID.randomUUID().toString().toLowerCase().trim().replaceAll("-", ""));
         testUser.setCreatedate(new Date());
         return testUser;
     }
-    public TestDevice GetDevice(String deviceID,String Name)
-    {
+
+    public TestDevice GetDevice(String deviceID, String Name) {
         TestDevice testDevice = new TestDevice();
         testDevice.setName(Name);
         testDevice.setDeviceID(deviceID);
@@ -299,8 +404,8 @@ public class BluetoothController extends BaseController {
         testDevice.setCreatedate(new Date());
         return testDevice;
     }
-    public TestUserDevice GetUserDevice(int uid,int did)
-    {
+
+    public TestUserDevice GetUserDevice(int uid, int did) {
         TestUserDevice testUserDevice = new TestUserDevice();
         testUserDevice.setUid(uid);
         testUserDevice.setDid(did);
@@ -310,20 +415,43 @@ public class BluetoothController extends BaseController {
 
     @PostMapping("api/add_fingerprint")
     public ResponseEntity<?> add_fingerprint(@RequestBody DTO_AddFingerprint dto) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("add_fingerprint");
+        logDto.setRequestUrl("api/add_fingerprint");
+        logDto.setPostData(JSONArray.toJSONString(dto));
+        /*--------------log------------------*/
         if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID()) || StringUtils.isEmpty(dto.getFingerprint())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
             return failResult(500.4, "请求缺少必要参数");
         }
         //判断phone的长度是否合理
         if (dto.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
             return failResult(500.5, "手机号长度不合法");
         }
         //判断手机号是否存在
         TestUser _testUser = _userMapper.getByPhone(dto.getPhone());
         if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
             return failResult(500.1, "手机号不存在");
         }
         TestDevice _testDevice = _deviceMapper.getByDeviceID(dto.getDeviceID());
         if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
             return failResult(500.2, "设备不存在");
         }
 
@@ -335,33 +463,50 @@ public class BluetoothController extends BaseController {
         entity.setFingerprint(dto.getFingerprint());
         entity.setFingerprintID(dto.getFingerprintID());
         int res = _fingerprintMapper.anyFingerprint(entity);
-        if (res > 0)
-        {
+        if (res > 0) {
             _fingerprintMapper.update(entity);
-        }
-        else
-        {
+        } else {
             _fingerprintMapper.insert(entity);
         }
+        /*--------------log------------------*/
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(null);
     }
 
 
     @PostMapping("api/del_fingerprint")
     public ResponseEntity<?> del_fingerprint(@RequestBody DTO_DelFingerprint dto) {
-        int res = _fingerprintMapper.any(dto.getGuid(),dto.getPhone());
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("del_fingerprint");
+        logDto.setRequestUrl("api/del_fingerprints");
+        logDto.setPostData(JSONArray.toJSONString(dto));
+        /*--------------log------------------*/
+        int res = _fingerprintMapper.any(dto.getGuid(), dto.getPhone());
         if (res > 0) {
-            _fingerprintMapper.del(dto.getGuid(),dto.getPhone());
-        }
-        else
-        {
+            _fingerprintMapper.del(dto.getGuid(), dto.getPhone());
+        } else {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
             return failResult(500.7, "这条指纹不属于该用户");
         }
+        /*--------------log------------------*/
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
         return successResult(null);
     }
 
     public static void main(String[] args) {
-       List<DTO_Fingerprint> list = new ArrayList<DTO_Fingerprint>();
+        logger.error("111");
+        logger.info("222");
+        logger.debug("333");
+        List<DTO_Fingerprint> list = new ArrayList<DTO_Fingerprint>();
         DTO_Fingerprint fDto = new DTO_Fingerprint();
         fDto.setGuid("1");
         fDto.setContent("2");
@@ -371,10 +516,15 @@ public class BluetoothController extends BaseController {
         TestFingerprint test = new TestFingerprint();
 
         BeanUtils.copyProperties(fDto, test);
+        String bbb = JSONArray.toJSONString(fDto);
         String jsonString = JSONArray.toJSONString(list);
-        String a =  "[{\"studentName\":\"lily\",\"studentAge\":12}]";
+        JSONArray jsonArray = JSONArray.parseArray(jsonString);
 
+        String a = "[{\"studentName\":\"lily\",\"studentAge\":12}]";
+        System.out.println(bbb);
         System.out.println(jsonString);
+        System.out.println(jsonArray);
+        // System.out.println(jsonArray);
         //System.out.println(JSONObject.parseObject(a));
 
 
