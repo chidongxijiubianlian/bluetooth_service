@@ -6,6 +6,7 @@ public class DTO_AddFingerprint {
     private String deviceID;
     private String fingerprint;
     private int fingerprintID;
+    private String fingerprintUID;
 
     public String getPhone() {
         return phone;
@@ -37,5 +38,13 @@ public class DTO_AddFingerprint {
 
     public void setFingerprintID(int fingerprintID) {
         this.fingerprintID = fingerprintID;
+    }
+
+    public String getFingerprintUID() {
+        return fingerprintUID;
+    }
+
+    public void setFingerprintUID(String fingerprintUID) {
+        this.fingerprintUID = fingerprintUID;
     }
 }

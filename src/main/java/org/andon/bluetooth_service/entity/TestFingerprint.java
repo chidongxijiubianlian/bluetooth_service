@@ -10,6 +10,15 @@ public class TestFingerprint {
     private String fingerprint;
     private Date createdate;
     private int fingerprintID;
+    private String fingerprintUID;
+
+    public String getFingerprintUID() {
+        return fingerprintUID;
+    }
+
+    public void setFingerprintUID(String fingerprintUID) {
+        this.fingerprintUID = fingerprintUID;
+    }
 
     public int getId() {
         return id;

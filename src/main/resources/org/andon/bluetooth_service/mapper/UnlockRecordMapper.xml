@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.andon.bluetooth_service.mapper.UnlockRecordMapper">
+  <!-- 批量插入数据 -->
+  <insert id="insertBatch" parameterType="java.util.List"
+          useGeneratedKeys="true">
+    insert into test_unlockrecord
+    (guid,phone,deviceID,content,type,timestamp)
+    values
+    <foreach collection="list" item="item" index="index"
+             separator=",">
+      (
+      #{item.guid},#{item.phone},#{item.deviceID},#{item.content},#{item.type},#{item.timestamp}
+      )
+    </foreach>
+  </insert>
+
+  <select id="select" resultType="TestUnlockrecord">
+        select * from test_unlockrecord where deviceID=#{0} and phone=#{1} and timestamp >= #{2} order by timestamp DESC;
+    </select>
+  <select id="selectFingerprint" resultType="TestFingerprint">
+    select * from test_fingerprint where fingerprintUID=#{0};
+  </select>
+
+</mapper>

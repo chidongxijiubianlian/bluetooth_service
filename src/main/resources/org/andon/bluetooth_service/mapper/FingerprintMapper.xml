@@ -5,8 +5,8 @@
 <mapper namespace="org.andon.bluetooth_service.mapper.FingerprintMapper">
   <insert id="insert" parameterType="TestFingerprint" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO test_fingerprint
-        (guid, phone, deviceID, fingerprint, createdate,fingerprintID) VALUES
-        (#{guid},#{phone},#{deviceID},#{fingerprint},#{createdate},#{fingerprintID});
+        (guid, phone, deviceID, fingerprint, createdate,fingerprintID,fingerprintUID) VALUES
+        (#{guid},#{phone},#{deviceID},#{fingerprint},#{createdate},#{fingerprintID},#{fingerprintUID});
     </insert>
   <delete id="del">
         delete from  test_fingerprint where guid=#{0} and phone=#{1};
@@ -20,12 +20,12 @@
   <update id="update" parameterType="TestFingerprint">
         update test_fingerprint set
         createdate =#{createdate},
-        fingerprintID=#{fingerprintID}
-        where phone =#{phone} and deviceID=#{deviceID} and fingerprint= #{fingerprint}
+        fingerprint=#{fingerprint}
+        where phone =#{phone} and deviceID=#{deviceID} and fingerprintID= #{fingerprintID}
     </update>
 
   <select id="anyFingerprint" parameterType="TestFingerprint" resultType="int">
-        select count(*) from test_fingerprint where phone =#{phone} and deviceID=#{deviceID} and fingerprint = #{fingerprint}
+        select count(*) from test_fingerprint where phone =#{phone} and deviceID=#{deviceID} and fingerprintID = #{fingerprintID}
     </select>
 
 </mapper>

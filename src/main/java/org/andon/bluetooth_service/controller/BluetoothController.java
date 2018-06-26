@@ -7,14 +7,8 @@ import org.andon.bluetooth_service.base.ResponseEntity;
 import org.andon.bluetooth_service.common.BluetoothUtils;
 import org.andon.bluetooth_service.common.DateUtils;
 import org.andon.bluetooth_service.dto.*;
-import org.andon.bluetooth_service.entity.TestDevice;
-import org.andon.bluetooth_service.entity.TestFingerprint;
-import org.andon.bluetooth_service.entity.TestUser;
-import org.andon.bluetooth_service.entity.TestUserDevice;
-import org.andon.bluetooth_service.mapper.DeviceMapper;
-import org.andon.bluetooth_service.mapper.FingerprintMapper;
-import org.andon.bluetooth_service.mapper.UserDeviceMapper;
-import org.andon.bluetooth_service.mapper.UserMapper;
+import org.andon.bluetooth_service.entity.*;
+import org.andon.bluetooth_service.mapper.*;
 import org.andon.bluetooth_service.ret.RETPhoneInfo;
 import org.andon.bluetooth_service.ret.RETSharedDeviceToUsers;
 import org.andon.bluetooth_service.service.IDeviceUsers;
@@ -27,12 +21,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,6 +41,8 @@ public class BluetoothController extends BaseController {
     private IDeviceUsers _ideviceUsers;
     @Autowired
     private FingerprintMapper _fingerprintMapper;
+    @Autowired
+    private UnlockRecordMapper _unlockrecordMapper;
 
     /**
      * 引入日志，注意都是"org.slf4j"包下
@@ -278,6 +274,7 @@ public class BluetoothController extends BaseController {
                     fDto.setContent(item.getFingerprint());
                     fDto.setCreatedate(sdf.format(item.getCreatedate()));
                     fDto.setFingerprintID(item.getFingerprintID());
+                    fDto.setFingerprintUID(item.getFingerprintUID());
                     tempList.add(fDto);
                 }
 
@@ -462,6 +459,7 @@ public class BluetoothController extends BaseController {
         entity.setDeviceID(dto.getDeviceID());
         entity.setFingerprint(dto.getFingerprint());
         entity.setFingerprintID(dto.getFingerprintID());
+        entity.setFingerprintUID(dto.getFingerprintUID());
         int res = _fingerprintMapper.anyFingerprint(entity);
         if (res > 0) {
             _fingerprintMapper.update(entity);
@@ -502,28 +500,186 @@ public class BluetoothController extends BaseController {
         return successResult(null);
     }
 
+    @PostMapping("api/add_unlockRecord")
+    public ResponseEntity<?> add_unlockRecord(@RequestBody DTO_AddUnlockrecord dto) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("add_unlockRecord");
+        logDto.setRequestUrl("api/add_unlockRecord");
+        logDto.setPostData(JSONArray.toJSONString(dto));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID()) || dto.getUnlockRecords() == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
+        }
+        //判断phone的长度是否合理
+        if (dto.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
+        }
+        //判断手机号是否存在
+        TestUser _testUser = _userMapper.getByPhone(dto.getPhone());
+        if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.1, "手机号不存在");
+        }
+        TestDevice _testDevice = _deviceMapper.getByDeviceID(dto.getDeviceID());
+        if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.2, "设备不存在");
+        }
+        List<TestUnlockrecord> list = new ArrayList<TestUnlockrecord>();
+        TestUnlockrecord entity = null;
+        for (DTO_Unlockrecord item : dto.getUnlockRecords()) {
+            entity = new TestUnlockrecord();
+            entity.setGuid(UUID.randomUUID().toString().toLowerCase().trim().replaceAll("-", ""));
+            entity.setPhone(dto.getPhone());
+            entity.setDeviceID(dto.getDeviceID());
+            entity.setType(item.getType());
+            entity.setTimestamp(item.getTimestamp());
+            if (1 == item.getType()) {
+                if (StringUtils.isEmpty(item.getCode())) {
+                    entity.setContent("");
+                } else {
+                    TestFingerprint entityFinger = _unlockrecordMapper.selectFingerprint(item.getCode());
+                    if (entityFinger != null) {
+                        entity.setContent(entityFinger.getFingerprint());
+                    }
+                }
+            } else {
+                entity.setContent(item.getCode());
+            }
+            list.add(entity);
+        }
+
+        _unlockrecordMapper.insertBatch(list);
+        /*--------------log------------------*/
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+        return successResult(null);
+    }
+
+    @PostMapping("api/get_unlockRecord")
+    public ResponseEntity<?> get_unlockRecord(@RequestBody DTO_GetUnlockrecord dto) {
+        /*--------------log------------------*/
+        DTOLogger logDto = new DTOLogger();
+        logDto.setRequestTime(DateUtils.getDateTimeStr(new Date()));
+        logDto.setAPIName("get_unlockRecord");
+        logDto.setRequestUrl("api/get_unlockRecord");
+        logDto.setPostData(JSONArray.toJSONString(dto));
+        /*--------------log------------------*/
+        if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID())) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.4, "请求缺少必要参数");
+        }
+        //判断phone的长度是否合理
+        if (dto.getPhone().length() != 11) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+            /*--------------log------------------*/
+            return failResult(500.5, "手机号长度不合法");
+        }
+        //判断手机号是否存在
+        TestUser _testUser = _userMapper.getByPhone(dto.getPhone());
+        if (_testUser == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.1, "手机号不存在");
+        }
+        TestDevice _testDevice = _deviceMapper.getByDeviceID(dto.getDeviceID());
+        if (_testDevice == null) {
+            /*--------------log------------------*/
+            logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+            logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+            return failResult(500.2, "设备不存在");
+        }
+
+        int day = 0;
+        Properties p = new Properties();
+        try {
+            InputStream in = new FileInputStream("conf/config.properties");
+            p.load(in);
+            day = Integer.parseInt(p.getProperty("day"));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<DTO_ResUnlockrecord> resList = new ArrayList<DTO_ResUnlockrecord>();
+        DTO_ResUnlockrecord resDto = null;
+        List<TestUnlockrecord> list = _unlockrecordMapper.select(dto.getDeviceID(), dto.getPhone(), DateUtils.forwardNow(day));
+
+        for (TestUnlockrecord entity : list) {
+            resDto = new DTO_ResUnlockrecord();
+            BeanUtils.copyProperties(entity, resDto);
+            resList.add(resDto);
+        }
+
+        /*--------------log------------------*/
+        logDto.setResponseData(JSONArray.toJSONString(resList));
+        logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
+        logger.info(JSONObject.toJSONString(logDto));
+        /*--------------log------------------*/
+        return successResult(resList);
+
+}
+
+
     public static void main(String[] args) {
-        logger.error("111");
-        logger.info("222");
-        logger.debug("333");
-        List<DTO_Fingerprint> list = new ArrayList<DTO_Fingerprint>();
-        DTO_Fingerprint fDto = new DTO_Fingerprint();
-        fDto.setGuid("1");
-        fDto.setContent("2");
-        fDto.setCreatedate("3");
-        list.add(fDto);
 
-        TestFingerprint test = new TestFingerprint();
+        Properties p = new Properties();
+        try {
+            InputStream in = new FileInputStream("conf/config.properties");
+            p.load(in);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        BeanUtils.copyProperties(fDto, test);
-        String bbb = JSONArray.toJSONString(fDto);
-        String jsonString = JSONArray.toJSONString(list);
-        JSONArray jsonArray = JSONArray.parseArray(jsonString);
-
-        String a = "[{\"studentName\":\"lily\",\"studentAge\":12}]";
-        System.out.println(bbb);
-        System.out.println(jsonString);
-        System.out.println(jsonArray);
+        System.out.println(p.getProperty("day"));
+//        JSONObject o = new JSONObject();
+//        o.put("A","value");
+//        System.out.println(o);
+//        logger.error("111");
+//        logger.info("222");
+//        logger.debug("333");
+//        List<DTO_Fingerprint> list = new ArrayList<DTO_Fingerprint>();
+//        DTO_Fingerprint fDto = new DTO_Fingerprint();
+//        fDto.setGuid("1");
+//        fDto.setContent("2");
+//        fDto.setCreatedate("3");
+//        list.add(fDto);
+//
+//        TestFingerprint test = new TestFingerprint();
+//
+//        BeanUtils.copyProperties(fDto, test);
+//        String bbb = JSONArray.toJSONString(fDto);
+//        String jsonString = JSONArray.toJSONString(list);
+//        JSONArray jsonArray = JSONArray.parseArray(jsonString);
+//
+//        String a = "[{\"studentName\":\"lily\",\"studentAge\":12}]";
+//        System.out.println(bbb);
+//        System.out.println(jsonString);
+//        System.out.println(jsonArray);
         // System.out.println(jsonArray);
         //System.out.println(JSONObject.parseObject(a));
 

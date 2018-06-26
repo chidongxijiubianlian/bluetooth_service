@@ -10,7 +10,7 @@ public interface FingerprintMapper {
     int insert(TestFingerprint TestFingerprint);
     void del(String guid,String phone);
     int any(String guid,String phone);
-    List<TestFingerprint> get(String deviceID, String iphone);
+    List<TestFingerprint> get(String deviceID, String phone);
     int update(TestFingerprint TestFingerprint);
     int anyFingerprint(TestFingerprint TestFingerprint);
 
