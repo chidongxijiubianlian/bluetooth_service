@@ -419,7 +419,7 @@ public class BluetoothController extends BaseController {
         logDto.setRequestUrl("api/add_fingerprint");
         logDto.setPostData(JSONArray.toJSONString(dto));
         /*--------------log------------------*/
-        if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID()) || StringUtils.isEmpty(dto.getFingerprint())) {
+        if (StringUtils.isEmpty(dto.getPhone()) || StringUtils.isEmpty(dto.getDeviceID()) || StringUtils.isEmpty(dto.getFingerprint())||StringUtils.isEmpty(dto.getFingerprintUID())) {
             /*--------------log------------------*/
             logDto.setResponseTime(DateUtils.getDateTimeStr(new Date()));
             logger.info(JSONObject.toJSONString(logDto));
