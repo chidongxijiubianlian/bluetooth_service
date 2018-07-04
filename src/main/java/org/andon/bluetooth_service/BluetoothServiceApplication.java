@@ -9,4 +9,5 @@ public class BluetoothServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BluetoothServiceApplication.class, args);
 	}
+
 }
